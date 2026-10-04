@@ -148,7 +148,9 @@ export function HomePage({
               <p className="mt-3 text-sm text-[#F6F1DC]/70">
                 {formatClock(route.departAt)} – {formatClock(route.arriveAt)}
               </p>
-              <p className="mt-2 text-sm font-semibold text-[#D6A000]">{formatInr(route.farePerSeat)} per seat</p>
+              <p className="mt-2 text-sm font-semibold text-[#D6A000]">
+                {route.seatsLeft > 0 ? `${route.seatsLeft} seat${route.seatsLeft === 1 ? "" : "s"} open` : "No seats left"} · {formatInr(route.farePerSeat)} per seat
+              </p>
               <Link href={`/routes/${route.id}`} className="mt-5 inline-flex text-xs font-semibold tracking-[0.18em] text-[#F6F1DC]">
                 BOOK TAXIPOOL
               </Link>

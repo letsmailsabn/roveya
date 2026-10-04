@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { PoolBooking } from "@/components/pool/PoolBooking";
 import { getTravelRoute } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

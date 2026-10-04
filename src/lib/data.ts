@@ -111,20 +111,40 @@ export type TravelRoute = {
   arriveAt: string;
   farePerSeat: number;
   seatsTotal: number;
+  seatsLeft: number;
   notes: string | null;
 };
+
+const routeColumns = "id,origin,destination,depart_at,arrive_at,fare_per_seat,seats_total,notes";
 
 export async function getTravelRoutes(): Promise<TravelRoute[]> {
   if (!isSupabaseConfigured()) return [];
   const db = createServiceClient();
   const { data, error } = await db
     .from("travel_routes")
-    .select("id,origin,destination,depart_at,arrive_at,fare_per_seat,seats_total,notes")
+    .select(routeColumns)
     .eq("is_active", true)
     .gte("depart_at", new Date().toISOString())
     .order("depart_at", { ascending: true });
   if (error || !data) return [];
-  return data.map(mapRoute);
+  return withOpenSeats(data);
+}
+
+export async function searchTravelRoutes(from: string, to: string): Promise<TravelRoute[]> {
+  const origin = cleanPlace(from);
+  const destination = cleanPlace(to);
+  if (origin.length < 2 || destination.length < 2 || !isSupabaseConfigured()) return [];
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("travel_routes")
+    .select(routeColumns)
+    .eq("is_active", true)
+    .gte("depart_at", new Date().toISOString())
+    .ilike("origin", `%${origin}%`)
+    .ilike("destination", `%${destination}%`)
+    .order("depart_at", { ascending: true });
+  if (error || !data) return [];
+  return withOpenSeats(data);
 }
 
 export async function getTravelRoute(id: string): Promise<TravelRoute | null> {
@@ -132,12 +152,38 @@ export async function getTravelRoute(id: string): Promise<TravelRoute | null> {
   const db = createServiceClient();
   const { data, error } = await db
     .from("travel_routes")
-    .select("id,origin,destination,depart_at,arrive_at,fare_per_seat,seats_total,notes")
+    .select(routeColumns)
     .eq("id", id)
     .eq("is_active", true)
     .maybeSingle();
   if (error || !data) return null;
-  return mapRoute(data);
+  const [route] = await withOpenSeats([data]);
+  return route ?? null;
+}
+
+function cleanPlace(value: string) {
+  return value.trim().replace(/[%_\\]/g, "").slice(0, 80);
+}
+
+async function withOpenSeats(rows: Parameters<typeof mapRoute>[0][]): Promise<TravelRoute[]> {
+  if (rows.length === 0) return [];
+  const db = createServiceClient();
+  const { data } = await db
+    .from("pool_bookings")
+    .select("route_id,seats")
+    .in(
+      "route_id",
+      rows.map((row) => row.id),
+    )
+    .in("status", ["REQUESTED", "CONFIRMED"]);
+  const used = new Map<string, number>();
+  for (const booking of data ?? []) {
+    used.set(booking.route_id, (used.get(booking.route_id) ?? 0) + booking.seats);
+  }
+  return rows.map((row) => ({
+    ...mapRoute(row),
+    seatsLeft: Math.max(row.seats_total - (used.get(row.id) ?? 0), 0),
+  }));
 }
 
 function mapRoute(row: {
@@ -158,6 +204,7 @@ function mapRoute(row: {
     arriveAt: row.arrive_at,
     farePerSeat: row.fare_per_seat,
     seatsTotal: row.seats_total,
+    seatsLeft: row.seats_total,
     notes: row.notes,
   };
 }
