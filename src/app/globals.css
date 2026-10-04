@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+@theme {
+  --color-burgundy: #6b1838;
+  --color-plum: #3a1024;
+  --color-cherry: #4c102c;
+  --color-night: #12060d;
+  --color-inkwell: #1c0a14;
+  --color-cream: #f6f1dc;
+  --color-mist: #2a1220;
+  --color-gold: #d6a000;
+  --color-gold-bright: #e0b23a;
+  --color-ink: #f6f1dc;
+  --color-paper: #241018;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), "Palatino Linotype", Palatino, serif;
+  --shadow-card: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-night);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--color-burgundy);
+  color: var(--color-cream);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+.gold-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+}
+
+.gold-frame {
+  box-shadow:
+    0 0 0 1px rgba(214, 160, 0, 0.55),
+    0 28px 70px rgba(79, 0, 57, 0.16);
+}
+
+.kicker {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+@media (min-width: 640px) {
+  .kicker {
+    letter-spacing: 0.32em;
+  }
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-burgundy);
+  color: var(--color-cream);
+  padding: 0.9rem 1.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.btn-primary:hover {
+  background: var(--color-plum);
+  box-shadow: 0 0 0 1px var(--color-gold);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 160, 0, 0.45);
+  background: transparent;
+  color: var(--color-cream);
+  padding: 0.9rem 1.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.pay-car {
+  animation: pay-drive 1.8s ease-in-out infinite;
+}
+
+@keyframes pay-drive {
+  0%,
+  100% {
+    transform: translateX(-13px);
+  }
+  50% {
+    transform: translateX(13px);
+  }
+}
+
+.road-dash {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-gold) 0 12px,
+    transparent 12px 22px
+  );
+  animation: road 1s linear infinite;
+}
+
+@keyframes road {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 34px 0;
+  }
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}

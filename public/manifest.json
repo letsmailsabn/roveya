@@ -1,0 +1,8 @@
+{
+  "name": "ROVEYA",
+  "short_name": "ROVEYA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F9F7E2",
+  "theme_color": "#600042"
+}
