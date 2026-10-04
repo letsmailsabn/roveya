@@ -267,10 +267,15 @@ export function AdminDesk() {
       {tab === "qr" && qr ? (
         <div className="mt-8 rounded-3xl bg-[#F9F7E2] p-8 text-center">
           <h2 className="text-2xl font-semibold">In-vehicle QR</h2>
-          <p className="mt-2 text-sm text-black/60">Print this code and place it inside every ROVEYA vehicle. It opens /pay directly.</p>
+          <p className="mt-2 text-sm text-black/60">
+            This opens Pay for your ride. Print the card and stick it flat inside the vehicle.
+          </p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qr.qrDataUrl} alt="ROVEYA vehicle payment QR" className="mx-auto mt-6 h-64 w-64" />
+          <img src={qr.qrDataUrl} alt="ROVEYA vehicle payment QR" className="mx-auto mt-6 h-64 w-64 bg-white" />
           <p className="mt-4 text-sm">{qr.url}</p>
+          <a href="/pay/sticker" className="mt-5 inline-block text-sm font-semibold text-[#600042]">
+            Open the print card
+          </a>
         </div>
       ) : null}
 

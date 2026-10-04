@@ -6,11 +6,37 @@ const quick = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Us" },
   { href: "/services", label: "Services" },
-  { href: "/routes", label: "Routes" },
+  { href: "/routes", label: "Pool a Ride" },
   { href: "/contact", label: "Contact Us" },
 ];
 
-export function Footer({ settings }: { settings: SiteSetting }) {
+const fallbackTrips = [
+  ["Hyderabad", "Khammam"],
+  ["Hyderabad", "Warangal"],
+  ["Hyderabad", "Vijayawada"],
+  ["Hyderabad", "Nalgonda"],
+  ["Hyderabad", "Suryapet"],
+  ["Khammam", "Hyderabad"],
+];
+
+function tripKey(origin: string, destination: string) {
+  return `${origin.toLowerCase()}→${destination.toLowerCase()}`;
+}
+
+export function Footer({
+  settings,
+  routes,
+}: {
+  settings: SiteSetting;
+  routes: { origin: string; destination: string }[];
+}) {
+  const published = routes.reduce<{ origin: string; destination: string }[]>((list, route) => {
+    if (list.some((item) => tripKey(item.origin, item.destination) === tripKey(route.origin, route.destination))) return list;
+    list.push({ origin: route.origin, destination: route.destination });
+    return list;
+  }, []);
+  const trips = (published.length > 0 ? published : fallbackTrips.map(([origin, destination]) => ({ origin, destination }))).slice(0, 6);
+  const destinations = [...new Set(trips.map((trip) => trip.destination))].slice(0, 6);
   const socials = [
     settings.instagramUrl ? { href: settings.instagramUrl, label: "Instagram" } : null,
     settings.facebookUrl ? { href: settings.facebookUrl, label: "Facebook" } : null,
@@ -19,7 +45,7 @@ export function Footer({ settings }: { settings: SiteSetting }) {
 
   return (
     <footer className="border-t border-[#D6A000]/20 bg-[#0C0308] text-[#F6F1DC]">
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 lg:px-8">
         <div>
           <Logo href="/" />
           <p className="mt-5 max-w-xs text-sm leading-7 text-[#F6F1DC]/80">
@@ -65,13 +91,40 @@ export function Footer({ settings }: { settings: SiteSetting }) {
           </ul>
           {socials.length > 0 ? (
             <div className="mt-5 flex gap-4 text-sm">
-              {socials.map((s) => (
-                <a key={s.label} href={s.href} target="_blank" rel="noreferrer" className="hover:text-[#D6A000]">
-                  {s.label}
+              {socials.map((item) => (
+                <a key={item.label} href={item.href} target="_blank" rel="noreferrer" className="hover:text-[#D6A000]">
+                  {item.label}
                 </a>
               ))}
             </div>
           ) : null}
+        </div>
+        <div>
+          <h2 className="text-[0.7rem] uppercase tracking-wide text-[#D6A000]">Travel with taxipool</h2>
+          <ul className="mt-4 space-y-2 text-sm">
+            {trips.map((trip) => (
+              <li key={tripKey(trip.origin, trip.destination)}>
+                <Link
+                  href={`/routes?from=${encodeURIComponent(trip.origin)}&to=${encodeURIComponent(trip.destination)}`}
+                  className="hover:text-[#D6A000]"
+                >
+                  {trip.origin} → {trip.destination}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h2 className="text-[0.7rem] uppercase tracking-wide text-[#D6A000]">Popular destinations</h2>
+          <ul className="mt-4 space-y-2 text-sm">
+            {destinations.map((city) => (
+              <li key={city}>
+                <Link href={`/routes?to=${encodeURIComponent(city)}`} className="hover:text-[#D6A000]">
+                  {city}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
       <div className="gold-line" />

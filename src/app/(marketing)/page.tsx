@@ -1,8 +1,6 @@
 import { HomePage } from "@/components/marketing/HomePage";
 import { getPublishedTestimonials, getSettings, getTravelRoutes } from "@/lib/data";
 
-export const dynamic = "force-dynamic";
-
 export default async function Page() {
   const [routes, testimonials, settings] = await Promise.all([
     getTravelRoutes(),

@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnalyticsPing, track } from "@/components/analytics/track";
+import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 import { Logo } from "@/components/brand/Logo";
+import { createClient } from "@/lib/supabase/browser";
 import { formatInr } from "@/lib/validation";
 
 type Destination = { id: string; name: string; farePerSeat: number };
-type Step = "loader" | "form" | "method" | "online" | "cash" | "success" | "thanks";
+type Step = "loader" | "account" | "form" | "method" | "online" | "cash" | "success" | "thanks";
 
 type RideView = {
   publicId: string;
@@ -30,7 +32,7 @@ type RazorpaySuccess = {
 
 const indianMobile = /^[6-9]\d{9}$/;
 
-export function PayExperience({ destinations }: { destinations: Destination[] }) {
+export function PayExperience({ destinations, driverId }: { destinations: Destination[]; driverId?: string }) {
   const [step, setStep] = useState<Step>("loader");
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -39,17 +41,37 @@ export function PayExperience({ destinations }: { destinations: Destination[] })
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [ride, setRide] = useState<RideView | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
-    const t = setTimeout(() => setStep("form"), 2600);
-    return () => clearTimeout(t);
+    let ignore = false;
+    const timer = setTimeout(() => {
+      void createClient()
+        .auth.getUser()
+        .then(({ data }) => {
+          if (ignore) return;
+          const user = data.user;
+          setSignedIn(Boolean(user));
+          const fetched = String(user?.user_metadata?.full_name || user?.user_metadata?.name || "").trim();
+          if (fetched) setName(fetched);
+          setStep(user ? "form" : "account");
+        })
+        .catch(() => {
+          if (!ignore) setStep("account");
+        });
+    }, 1600);
+    return () => {
+      ignore = true;
+      clearTimeout(timer);
+    };
   }, []);
 
   const destination = destinations.find((d) => d.id === destinationId);
   const liveTotal = useMemo(() => (destination ? destination.farePerSeat * seats : 0), [destination, seats]);
-  const valid = name.trim().length >= 2 && indianMobile.test(mobile) && seats >= 1 && Boolean(destinationId);
+  const phoneOk = mobile.length === 0 || indianMobile.test(mobile);
+  const valid = signedIn && name.trim().length >= 2 && phoneOk && seats >= 1 && Boolean(destinationId);
 
   useEffect(() => {
     if (!ride?.publicId || (step !== "online" && step !== "cash")) return;
@@ -61,6 +83,9 @@ export function PayExperience({ destinations }: { destinations: Destination[] })
       if (data.paymentStatus === "PAID") {
         track("payment_completed");
         setStep("success");
+      } else if (step === "cash" && data.paymentStatus === "FAILED") {
+        setError("This cash payment was not recorded.");
+        setStep("method");
       }
     }, 2500);
     return () => clearInterval(id);
@@ -73,7 +98,7 @@ export function PayExperience({ destinations }: { destinations: Destination[] })
     const res = await fetch("/api/rides", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, mobile, seats, destinationId }),
+      body: JSON.stringify({ name, mobile, seats, destinationId, driverId }),
     });
     const data = await res.json();
     setBusy(false);
@@ -157,6 +182,22 @@ export function PayExperience({ destinations }: { destinations: Destination[] })
     await openRazorpay(data);
   }
 
+  async function slideCash() {
+    if (!ride) return;
+    setBusy(true);
+    setError("");
+    const res = await fetch(`/api/rides/${ride.publicId}/cash`, { method: "POST" });
+    const data = await res.json().catch(() => null);
+    setBusy(false);
+    if (!res.ok) {
+      setError(data?.error ?? "The cash payment could not be recorded.");
+      return;
+    }
+    track("payment_completed");
+    setRide((prev) => (prev ? { ...prev, ...data, paymentStatus: "PAID" } : prev));
+    setStep("success");
+  }
+
   async function submitFeedback() {
     if (!ride || rating < 1) return;
     setBusy(true);
@@ -182,6 +223,16 @@ export function PayExperience({ destinations }: { destinations: Destination[] })
 
       {step === "loader" ? <Loader /> : null}
 
+      {step === "account" ? (
+        <section className="pt-8 text-center">
+          <h1 className="display text-4xl">Pay for your ride</h1>
+          <p className="mt-4 text-sm leading-6 text-[#F6F1DC]/65">Sign in with Google. Your name is filled in from the account. A mobile number is optional.</p>
+          <div className="mx-auto mt-8 max-w-sm text-left">
+            <GoogleSignIn next={driverId ? `/pay?driver=${driverId}` : "/pay"} />
+          </div>
+        </section>
+      ) : null}
+
       {step === "form" && destinations.length === 0 ? (
         <section className="pt-8 text-center">
           <h1 className="display text-4xl">Pay for your ride</h1>
@@ -193,7 +244,7 @@ export function PayExperience({ destinations }: { destinations: Destination[] })
         <section className="pb-28">
           <p className="kicker text-center">ROVEYA</p>
           <h1 className="display mt-2 text-center text-4xl">Pay for your ride</h1>
-          <p className="mt-2 text-center text-sm text-[#F6F1DC]/55">You are already travelling. Enter details to pay.</p>
+          <p className="mt-2 text-center text-sm text-[#F6F1DC]/55">You are already travelling. Your name comes from Google. Add a mobile number only if you want to.</p>
           <form
             className="mt-8 space-y-4"
             onSubmit={(e) => {
@@ -212,17 +263,16 @@ export function PayExperience({ destinations }: { destinations: Destination[] })
                 required
               />
             </Field>
-            <Field label="Mobile number *">
+            <Field label="Mobile number">
               <div className="flex overflow-hidden rounded-2xl bg-[#2A1220] text-[#F6F1DC]">
                 <span className="px-3 py-4 text-base text-[#F6F1DC]/50">+91</span>
                 <input
                   value={mobileShown}
                   onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                  placeholder="XXXXX XXXXX"
+                  placeholder="Optional"
                   inputMode="numeric"
                   className="w-full bg-transparent py-4 pr-4 text-base"
                   autoComplete="tel"
-                  required
                   aria-invalid={mobile.length > 0 && !indianMobile.test(mobile)}
                 />
               </div>
@@ -331,9 +381,9 @@ export function PayExperience({ destinations }: { destinations: Destination[] })
           <p className="kicker">Cash payment</p>
           <h1 className="display mt-3 text-4xl">Amount due</h1>
           <p className="mt-2 text-5xl font-semibold text-[#E0B23A]">{formatInr(ride.totalFare)}</p>
-          <p className="mt-4 text-sm text-[#F6F1DC]/68">Please pay the exact amount to the driver.</p>
-          <p className="mt-8 text-xs tracking-[0.16em] text-[#E0B23A]">WAITING FOR DRIVER CONFIRMATION</p>
-          <p className="mt-3 text-sm text-[#F6F1DC]/50">An authorised ROVEYA team member will confirm cash received.</p>
+          <p className="mt-4 text-sm text-[#F6F1DC]/68">Hand this amount to the driver, then slide to record the payment.</p>
+          {error ? <p className="mt-3 text-sm text-[#E0B23A]">{error}</p> : null}
+          <CashSlide busy={busy} onConfirm={() => void slideCash()} />
         </section>
       ) : null}
 
@@ -401,6 +451,73 @@ function loadRazorpay() {
     script.onerror = () => resolve(false);
     document.body.appendChild(script);
   });
+}
+
+function CashSlide({ busy, onConfirm }: { busy: boolean; onConfirm: () => void }) {
+  const track = useRef<HTMLDivElement>(null);
+  const sent = useRef(false);
+  const place = useRef(0);
+  const [offset, setOffset] = useState(0);
+  const [done, setDone] = useState(false);
+
+  function limit() {
+    return Math.max((track.current?.clientWidth ?? 0) - 64, 0);
+  }
+
+  function finish(next: number) {
+    const end = limit();
+    if (next < end - 6) {
+      setOffset(0);
+      return;
+    }
+    setOffset(end);
+    setDone(true);
+    if (!sent.current) {
+      sent.current = true;
+      onConfirm();
+    }
+  }
+
+  function pointerDown(event: React.PointerEvent<HTMLButtonElement>) {
+    if (done || busy) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function pointerMove(event: React.PointerEvent<HTMLButtonElement>) {
+    if (done || busy || !event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    const rect = track.current?.getBoundingClientRect();
+    if (!rect) return;
+    const next = Math.min(Math.max(event.clientX - rect.left - 32, 0), limit());
+    place.current = next;
+    setOffset(next);
+  }
+
+  function pointerUp(event: React.PointerEvent<HTMLButtonElement>) {
+    if (done || busy) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    finish(place.current);
+  }
+
+  return (
+    <div ref={track} className="relative mx-auto mt-8 h-16 w-full overflow-hidden rounded-full bg-[#2A1220]">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-semibold tracking-[0.16em] text-[#F6F1DC]/70 uppercase">
+        {done ? "Recording cash" : "Slide after you pay"}
+      </div>
+      <button
+        type="button"
+        aria-label="Slide to confirm the cash payment"
+        disabled={done || busy}
+        onPointerDown={pointerDown}
+        onPointerMove={pointerMove}
+        onPointerUp={pointerUp}
+        onPointerCancel={pointerUp}
+        style={{ transform: `translateX(${offset}px)` }}
+        className="absolute top-1 left-1 flex h-14 w-14 touch-none items-center justify-center rounded-full bg-[#D6A000] text-2xl text-[#12060D] disabled:opacity-80"
+      >
+        ›
+      </button>
+    </div>
+  );
 }
 
 function Loader() {

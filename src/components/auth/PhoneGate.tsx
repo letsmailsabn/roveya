@@ -1,18 +1,20 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { PhoneOtp } from "@/components/auth/PhoneOtp";
+import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 
 export function PhoneGate() {
-  const search = useSearchParams();
-  const next = search.get("next") || "/account";
+  const params = useSearchParams();
+  const next = params.get("next") || "/account";
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/account";
+
   return (
-    <article className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-5 py-16">
-      <p className="kicker">YOU</p>
-      <h1 className="display mt-3 text-5xl">Mobile number</h1>
-      <p className="mt-3 text-sm text-[#F6F1DC]/65">Enter your number, then the OTP.</p>
+    <article className="mx-auto max-w-md px-5 py-20">
+      <p className="kicker">Account</p>
+      <h1 className="display mt-3 text-5xl">Sign in</h1>
+      <p className="mt-4 text-sm leading-6 text-[#F6F1DC]/70">Use Google. Your name is taken from the account. A mobile number stays optional.</p>
       <div className="mt-8">
-        <PhoneOtp next={next} />
+        <GoogleSignIn next={safeNext} />
       </div>
     </article>
   );

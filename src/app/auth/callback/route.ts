@@ -11,9 +11,11 @@ export async function GET(request: NextRequest) {
     const verified = await supabase.auth.exchangeCodeForSession(code);
     const user = verified.data.user;
     if (user) {
+      const meta = user.user_metadata ?? {};
+      const fetched = String(meta.full_name || meta.name || "").trim();
       await supabase.from("customer_profiles").upsert(
-        { auth_user_id: user.id, name: "Traveller", email: user.email },
-        { onConflict: "auth_user_id", ignoreDuplicates: true },
+        { auth_user_id: user.id, name: fetched || "Traveller", email: user.email },
+        { onConflict: "auth_user_id" },
       );
     }
   }

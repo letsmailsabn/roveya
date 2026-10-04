@@ -279,7 +279,7 @@ export function devCreateRide(input: { name: string; mobile: string; seats: numb
   const store = readStore();
   const destination = store.destinations.find((item) => item.id === input.destinationId && item.active);
   if (!destination) throw new AppError("Destination is not available.");
-  let customer = store.customers.find((item) => item.mobile === input.mobile);
+  let customer = input.mobile ? store.customers.find((item) => item.mobile === input.mobile) : undefined;
   if (customer) customer.name = input.name.trim();
   else {
     customer = { id: crypto.randomUUID(), name: input.name.trim(), mobile: input.mobile, createdAt: new Date().toISOString() };
@@ -329,6 +329,10 @@ export function devStartCash(publicId: string) {
   ride.paymentMethod = "CASH";
   writeStore(store);
   return viewRide(store, ride);
+}
+
+export function devSlideCash(publicId: string) {
+  return devConfirmCash(publicId, { id: "customer", authUserId: "customer", email: "", name: "Passenger", role: "ADMIN" });
 }
 
 export function devConfirmCash(publicId: string, _staff: StaffSession) {

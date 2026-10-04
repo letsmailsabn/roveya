@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { PhoneOtp } from "@/components/auth/PhoneOtp";
+import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 import { Logo } from "@/components/brand/Logo";
 import { track } from "@/components/analytics/track";
 import { createClient } from "@/lib/supabase/browser";
@@ -12,29 +12,28 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Us" },
   { href: "/services", label: "Services" },
-  { href: "/routes", label: "Routes" },
+  { href: "/routes", label: "Pool a Ride" },
   { href: "/contact", label: "Contact Us" },
 ];
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const [youOpen, setYouOpen] = useState(false);
-  const [phone, setPhone] = useState<string | null>(null);
+  const [who, setWho] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
     const supabase = createClient();
     void supabase.auth.getUser().then(({ data }) => {
-      const value = data.user?.phone ?? String(data.user?.user_metadata?.mobile ?? "");
-      const digits = value.replace(/\D/g, "");
-      const local = digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : digits.slice(-10);
-      setPhone(local.length === 10 ? local : null);
+      const user = data.user;
+      const name = String(user?.user_metadata?.full_name || user?.user_metadata?.name || "").trim();
+      setWho(user ? name || user.email || "Signed in" : null);
     });
   }, [pathname, youOpen]);
 
   async function signOut() {
     await createClient().auth.signOut();
-    setPhone(null);
+    setWho(null);
     setYouOpen(false);
     window.location.href = "/";
   }
@@ -93,9 +92,9 @@ export function Header() {
         {youOpen ? (
           <div className="absolute right-3 top-full z-50 mt-3 hidden w-80 rounded-3xl border border-[#E0B23A] bg-[#2A1020] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.45)] lg:block">
             <p className="text-sm font-semibold tracking-[0.2em] text-[#E0B23A]">YOU</p>
-            {phone ? (
+            {who ? (
               <div className="mt-4 space-y-3 text-sm">
-                <p className="text-[#F6F1DC]">+91 {phone}</p>
+                <p className="text-[#F6F1DC]">{who}</p>
                 <Link href="/account" onClick={() => setYouOpen(false)} className="block text-[#E0B23A]">
                   Your trips
                 </Link>
@@ -105,7 +104,7 @@ export function Header() {
               </div>
             ) : (
               <div className="mt-4">
-                <PhoneOtp next={pathname} onDone={() => setYouOpen(false)} />
+                <GoogleSignIn next={pathname} />
               </div>
             )}
           </div>
@@ -114,9 +113,9 @@ export function Header() {
       </div>
       {youOpen ? (
         <div className="border-t border-[#D6A000]/20 bg-[#12060D] px-5 py-4 lg:hidden">
-          {phone ? (
+          {who ? (
             <div className="space-y-3 text-sm uppercase tracking-[0.14em]">
-              <p className="text-[#F6F1DC]">+91 {phone}</p>
+              <p className="text-[#F6F1DC]">{who}</p>
               <Link href="/account" onClick={() => setYouOpen(false)} className="block text-[#D6A000]">
                 Your trips
               </Link>
@@ -125,7 +124,7 @@ export function Header() {
               </button>
             </div>
           ) : (
-            <PhoneOtp next={pathname} onDone={() => setYouOpen(false)} />
+            <GoogleSignIn next={pathname} />
           )}
         </div>
       ) : null}
@@ -137,9 +136,6 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link href="/routes" onClick={() => setOpen(false)} className="py-2 text-[#D6A000]">
-              Book taxipool
-            </Link>
             <Link
               href="/pay"
               onClick={() => {

@@ -8,9 +8,15 @@ export const indianMobileSchema = z
 export const createRideSchema = z
   .object({
     name: z.string().trim().min(2, "Enter your full name").max(80),
-    mobile: indianMobileSchema,
+    mobile: z
+      .string()
+      .optional()
+      .default("")
+      .transform((value) => value.replace(/\s+/g, ""))
+      .refine((value) => value === "" || /^[6-9]\d{9}$/.test(value), "Enter a valid 10-digit Indian mobile number"),
     seats: z.coerce.number().int().min(1).max(8),
     destinationId: z.string().uuid("Select a destination"),
+    driverId: z.string().uuid().optional(),
   })
   .strict();
 

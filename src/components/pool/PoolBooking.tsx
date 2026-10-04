@@ -13,7 +13,6 @@ type Companion = { first_name: string; seats: number; status: string };
 export function PoolBooking({ route }: { route: TravelRoute }) {
   const router = useRouter();
   const [companions, setCompanions] = useState<Companion[]>([]);
-  const [companionsReady, setCompanionsReady] = useState(false);
   const [seats, setSeats] = useState(1);
   const [signedIn, setSignedIn] = useState(false);
   const [notice, setNotice] = useState("");
@@ -22,16 +21,15 @@ export function PoolBooking({ route }: { route: TravelRoute }) {
   useEffect(() => {
     const supabase = createClient();
     void supabase.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
-    void loadCompanions();
-    async function loadCompanions() {
-      const { data } = await supabase.from("pool_companions").select("first_name,seats,status").eq("route_id", route.id);
-      setCompanions((data ?? []) as Companion[]);
-      setCompanionsReady(true);
-    }
+    void supabase
+      .from("pool_companions")
+      .select("first_name,seats,status")
+      .eq("route_id", route.id)
+      .then(({ data }) => setCompanions((data ?? []) as Companion[]));
   }, [route.id]);
 
   const taken = companions.reduce((sum, person) => sum + person.seats, 0);
-  const left = companionsReady ? Math.max(route.seatsTotal - taken, 0) : route.seatsLeft;
+  const left = Math.max(route.seatsTotal - taken, 0);
 
   async function requestSeat() {
     setNotice("");
@@ -60,9 +58,6 @@ export function PoolBooking({ route }: { route: TravelRoute }) {
       return;
     }
     setNotice("Your seat request is with the ROVEYA drivers. They will confirm your place.");
-    const refreshed = await supabase.from("pool_companions").select("first_name,seats,status").eq("route_id", route.id);
-    setCompanions((refreshed.data ?? []) as Companion[]);
-    setCompanionsReady(true);
     router.refresh();
   }
 

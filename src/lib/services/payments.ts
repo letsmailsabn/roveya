@@ -8,7 +8,8 @@ import { toPaise } from "@/lib/fare";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { StaffSession } from "@/lib/auth";
 import { isLocalAdminEnabled } from "@/lib/dev-mode";
-import { devConfirmCash, devCreateRide, devGetRide, devStartCash } from "@/lib/dev-store";
+import { devConfirmCash, devCreateRide, devGetRide, devSlideCash, devStartCash } from "@/lib/dev-store";
+import { applyCashDecision, openDriverCash } from "@/lib/services/cash";
 
 type RideRow = {
   id: string;
@@ -19,6 +20,7 @@ type RideRow = {
   fare_per_seat: number;
   total_amount: number;
   status: string;
+  driver_id?: string | null;
   customers: { name: string; mobile: string } | { name: string; mobile: string }[] | null;
   destinations: { name: string } | { name: string }[] | null;
   payments?: PaymentRow[] | null;
@@ -65,16 +67,21 @@ export function mapRide(row: RideRow, extras?: { keyId?: string | null; orderId?
   };
 }
 
-const rideSelect = `
+const rideColumns = `
   id, ride_id, customer_id, destination_id, number_of_seats, fare_per_seat, total_amount, status,
   customers ( name, mobile ),
   destinations ( name ),
   payments ( id, ride_id, method, amount, status, razorpay_order_id, razorpay_payment_id, created_at )
 `;
+const rideSelect = rideColumns.replace("status,", "status, driver_id,");
 
 async function loadRide(publicId: string) {
   const db = createServiceClient();
-  const { data, error } = await db.from("rides").select(rideSelect).eq("ride_id", publicId).maybeSingle();
+  let result = await db.from("rides").select(rideSelect).eq("ride_id", publicId).maybeSingle();
+  if (result.error?.message.includes("driver_id")) {
+    result = await db.from("rides").select(rideColumns).eq("ride_id", publicId).maybeSingle();
+  }
+  const { data, error } = result;
   if (error) {
     logServerError("load-ride", error);
     throw new AppError("Unable to load this ride.", 500);
@@ -113,7 +120,7 @@ function razorpayClient() {
   return { keyId, keySecret, client: new Razorpay({ key_id: keyId, key_secret: keySecret }) };
 }
 
-export async function createRide(input: { name: string; mobile: string; seats: number; destinationId: string }) {
+export async function createRide(input: { name: string; mobile: string; seats: number; destinationId: string; driverId?: string }) {
   if (isLocalAdminEnabled()) return devCreateRide(input);
   const db = createServiceClient();
   const ride = await createRideRecord(input, {
@@ -131,11 +138,10 @@ export async function createRide(input: { name: string; mobile: string; seats: n
       return { id: data.id, name: data.name, farePerSeat: data.fare_per_seat, active: data.is_active };
     },
     async upsertCustomer(customer) {
-      const { data, error } = await db
-        .from("customers")
-        .upsert({ name: customer.name, mobile: customer.mobile }, { onConflict: "mobile" })
-        .select("id,name,mobile")
-        .single();
+      const query = customer.mobile
+        ? db.from("customers").upsert({ name: customer.name, mobile: customer.mobile }, { onConflict: "mobile" }).select("id,name,mobile").single()
+        : db.from("customers").insert({ name: customer.name, mobile: null }).select("id,name,mobile").single();
+      const { data, error } = await query;
       if (error || !data) {
         logServerError("customer", error);
         throw new AppError("Unable to save the passenger.", 500);
@@ -167,6 +173,11 @@ export async function createRide(input: { name: string; mobile: string; seats: n
       return next;
     },
   });
+
+  if (input.driverId) {
+    const { error } = await db.from("rides").update({ driver_id: input.driverId }).eq("ride_id", ride.rideCode);
+    if (error && !error.message.includes("driver_id")) logServerError("ride-driver", error);
+  }
 
   return {
     publicId: ride.rideCode,
@@ -202,7 +213,14 @@ export async function startCashPayment(publicId: string) {
   if (isLocalAdminEnabled()) return devStartCash(publicId);
   const row = await loadRide(publicId);
   if (row.status === "PAID") throw new AppError("This ride is already paid.");
-  if (row.status === "CASH_PENDING") return mapRide(row);
+  if (row.status === "CASH_PENDING") {
+    try {
+      const driver = await openDriverCash(row);
+      return { ...mapRide(row), ...driver };
+    } catch {
+      return mapRide(row);
+    }
+  }
   const pendingOnline = (row.payments ?? []).find((payment) => payment.method === "RAZORPAY" && payment.status === "PENDING");
   if (pendingOnline) throw new AppError("Online payment is already in progress for this ride.");
 
@@ -219,7 +237,35 @@ export async function startCashPayment(publicId: string) {
   }
   await db.from("rides").update({ status: "CASH_PENDING" }).eq("id", row.id);
   const next = await loadRide(publicId);
-  return mapRide(next);
+  try {
+    const driver = await openDriverCash(next);
+    return { ...mapRide(next), ...driver };
+  } catch {
+    return mapRide(next);
+  }
+}
+
+export async function confirmCashByCustomer(publicId: string) {
+  if (isLocalAdminEnabled()) return devSlideCash(publicId);
+  const row = await loadRide(publicId);
+  const cash = (row.payments ?? []).find((payment) => payment.method === "CASH");
+  if (!cash || row.status !== "CASH_PENDING") throw new AppError("This ride is not waiting for cash confirmation.");
+  if (cash.status === "PAID") return getRide(publicId);
+  await applyCashDecision({
+    rideUuid: row.id,
+    paymentId: cash.id,
+    decision: "ACCEPTED",
+    requireConfirmation: false,
+  });
+  await writeAudit({
+    userId: null,
+    action: "ride.cash_slid",
+    entity: "rides",
+    entityId: row.id,
+    oldData: { status: row.status },
+    newData: { status: "PAID", via: "customer_slide" },
+  });
+  return getRide(publicId);
 }
 
 export async function createRazorpayOrder(publicId: string) {
@@ -464,15 +510,12 @@ export async function confirmCashPayment(publicId: string, staff: StaffSession) 
   if (!cash || row.status !== "CASH_PENDING") throw new AppError("This ride is not waiting for cash confirmation.");
   if (cash.status === "PAID") return mapRide(row);
 
-  const db = createServiceClient();
-  const { data: changed } = await db
-    .from("payments")
-    .update({ status: "PAID", paid_at: new Date().toISOString() })
-    .eq("id", cash.id)
-    .eq("status", "PENDING")
-    .select("id");
-  if (!changed?.length) throw new AppError("Cash payment could not be confirmed.");
-  await db.from("rides").update({ status: "PAID" }).eq("id", row.id);
+  await applyCashDecision({
+    rideUuid: row.id,
+    paymentId: cash.id,
+    decision: "ACCEPTED",
+    requireConfirmation: false,
+  });
   await writeAudit({
     userId: staff.id,
     action: "ride.cash_confirmed",
@@ -482,6 +525,21 @@ export async function confirmCashPayment(publicId: string, staff: StaffSession) 
     newData: { status: "PAID", confirmed_by: staff.id },
   });
   return getRide(publicId);
+}
+
+async function driverForDestination(destination: string) {
+  const name = destination.trim();
+  if (!name) return null;
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("travel_routes")
+    .select("driver_id")
+    .ilike("destination", name)
+    .not("driver_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+  if (error || !data?.driver_id) return null;
+  return data.driver_id as string;
 }
 
 export async function submitRating(publicId: string, stars: number, feedback: string) {
@@ -495,8 +553,19 @@ export async function submitRating(publicId: string, stars: number, feedback: st
     ride_id: row.id,
     stars,
     feedback: feedback.trim() ? feedback.trim() : null,
+    driver_id: await driverForDestination(one(row.destinations)?.name ?? ""),
   });
-  if (error) {
+  if (error?.message?.includes("driver_id")) {
+    const fallback = await db.from("ratings").insert({
+      ride_id: row.id,
+      stars,
+      feedback: feedback.trim() ? feedback.trim() : null,
+    });
+    if (fallback.error) {
+      logServerError("rating", fallback.error);
+      throw new AppError("Unable to save feedback.", 500);
+    }
+  } else if (error) {
     logServerError("rating", error);
     throw new AppError("Unable to save feedback.", 500);
   }

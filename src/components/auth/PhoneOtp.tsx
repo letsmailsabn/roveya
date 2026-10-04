@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/browser";
 
-export function PhoneOtp({ next = "/account", onDone }: { next?: string; onDone?: () => void }) {
+export function PhoneOtp({ next = "/account", onDone }: { next?: string; onDone?: () => void | Promise<void> }) {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -41,9 +41,11 @@ export function PhoneOtp({ next = "/account", onDone }: { next?: string; onDone?
       { auth_user_id: result.data.user.id, name: "Traveller", mobile: phone },
       { onConflict: "auth_user_id", ignoreDuplicates: true },
     );
-    onDone?.();
-    router.push(next);
-    router.refresh();
+    await onDone?.();
+    if (next) {
+      router.push(next);
+      router.refresh();
+    }
   }
 
   return (

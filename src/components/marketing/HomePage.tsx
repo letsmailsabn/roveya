@@ -53,7 +53,7 @@ export function HomePage({
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
               <PayCta className="btn-primary w-full sm:w-auto">PAY FOR YOUR RIDE</PayCta>
               <Link href="/routes" className="btn-ghost w-full sm:w-auto">
-                EXPLORE OUR ROUTES
+                POOL A RIDE
               </Link>
             </div>
           </div>
@@ -133,7 +133,7 @@ export function HomePage({
 
       <section className="mx-auto max-w-6xl px-5 py-20 lg:px-8">
         <p className="kicker">Taxipool</p>
-        <h2 className="display mt-3 text-4xl md:text-5xl">Our routes</h2>
+        <h2 className="display mt-3 text-4xl md:text-5xl">Pool a ride</h2>
         <p className="mt-4 max-w-xl text-[#F6F1DC]/68">
           Each route has a starting point, a destination, and a departure and arrival time. You share the taxi with other passengers.
         </p>
@@ -148,9 +148,7 @@ export function HomePage({
               <p className="mt-3 text-sm text-[#F6F1DC]/70">
                 {formatClock(route.departAt)} – {formatClock(route.arriveAt)}
               </p>
-              <p className="mt-2 text-sm font-semibold text-[#D6A000]">
-                {route.seatsLeft > 0 ? `${route.seatsLeft} seat${route.seatsLeft === 1 ? "" : "s"} open` : "No seats left"} · {formatInr(route.farePerSeat)} per seat
-              </p>
+              <p className="mt-2 text-sm font-semibold text-[#D6A000]">{formatInr(route.farePerSeat)} per seat</p>
               <Link href={`/routes/${route.id}`} className="mt-5 inline-flex text-xs font-semibold tracking-[0.18em] text-[#F6F1DC]">
                 BOOK TAXIPOOL
               </Link>
@@ -158,7 +156,7 @@ export function HomePage({
           ))}
         </div>
         <Link href="/routes" className="mt-8 inline-flex text-xs font-semibold tracking-[0.18em] text-[#D6A000]">
-          VIEW ALL ROUTES
+          POOL A RIDE
         </Link>
       </section>
 
