@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   const auth = await createStaffClient();
   const { data: session } = await auth.auth.getUser();
   const user = session.user;
-  if (!user) return jsonError("Sign in with Google before booking.", 401);
+  if (!user) return jsonError("Sign-in is paused for now.", 401);
 
   const meta = user.user_metadata ?? {};
   const name = String(meta.full_name || meta.name || "").trim() || "Traveller";

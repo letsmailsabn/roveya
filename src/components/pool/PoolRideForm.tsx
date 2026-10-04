@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 import { seatsAreTight } from "@/lib/pool";
 import type { MapPoint, SearchTrip } from "@/lib/pool";
 import { createClient } from "@/lib/supabase/browser";
@@ -294,7 +293,7 @@ export function PoolRideForm({
     if (!auth.data.user) {
       setPendingId(routeId);
       setNeedSignIn(true);
-      setNotice("Sign in with your mobile number, then this seat is booked.");
+      setNotice("Sign-in is paused for now, so this seat cannot be booked yet.");
       return;
     }
     setBusy(true);
@@ -484,7 +483,7 @@ export function PoolRideForm({
 
       {needSignIn ? (
         <div className="mt-5 max-w-md rounded-3xl border border-[#D6A000]/30 bg-[#241018] p-5">
-          <GoogleSignIn next="/routes" />
+          <p className="text-sm leading-6 text-[#F6F1DC]/75">Sign-in is paused for now.</p>
         </div>
       ) : null}
     </div>

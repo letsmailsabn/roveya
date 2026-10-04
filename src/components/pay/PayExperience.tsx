@@ -2,13 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnalyticsPing, track } from "@/components/analytics/track";
-import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 import { Logo } from "@/components/brand/Logo";
-import { createClient } from "@/lib/supabase/browser";
 import { formatInr } from "@/lib/validation";
 
 type Destination = { id: string; name: string; farePerSeat: number };
-type Step = "loader" | "account" | "form" | "method" | "online" | "cash" | "success" | "thanks";
+type Step = "loader" | "form" | "method" | "online" | "cash" | "success" | "thanks";
 
 type RideView = {
   publicId: string;
@@ -41,37 +39,18 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [ride, setRide] = useState<RideView | null>(null);
-  const [signedIn, setSignedIn] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
-    let ignore = false;
-    const timer = setTimeout(() => {
-      void createClient()
-        .auth.getUser()
-        .then(({ data }) => {
-          if (ignore) return;
-          const user = data.user;
-          setSignedIn(Boolean(user));
-          const fetched = String(user?.user_metadata?.full_name || user?.user_metadata?.name || "").trim();
-          if (fetched) setName(fetched);
-          setStep(user ? "form" : "account");
-        })
-        .catch(() => {
-          if (!ignore) setStep("account");
-        });
-    }, 1600);
-    return () => {
-      ignore = true;
-      clearTimeout(timer);
-    };
+    const timer = setTimeout(() => setStep("form"), 1600);
+    return () => clearTimeout(timer);
   }, []);
 
   const destination = destinations.find((d) => d.id === destinationId);
   const liveTotal = useMemo(() => (destination ? destination.farePerSeat * seats : 0), [destination, seats]);
   const phoneOk = mobile.length === 0 || indianMobile.test(mobile);
-  const valid = signedIn && name.trim().length >= 2 && phoneOk && seats >= 1 && Boolean(destinationId);
+  const valid = name.trim().length >= 2 && phoneOk && seats >= 1 && Boolean(destinationId);
 
   useEffect(() => {
     if (!ride?.publicId || (step !== "online" && step !== "cash")) return;
@@ -223,16 +202,6 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
 
       {step === "loader" ? <Loader /> : null}
 
-      {step === "account" ? (
-        <section className="pt-8 text-center">
-          <h1 className="display text-4xl">Pay for your ride</h1>
-          <p className="mt-4 text-sm leading-6 text-[#F6F1DC]/65">Sign in with Google. Your name is filled in from the account. A mobile number is optional.</p>
-          <div className="mx-auto mt-8 max-w-sm text-left">
-            <GoogleSignIn next={driverId ? `/pay?driver=${driverId}` : "/pay"} />
-          </div>
-        </section>
-      ) : null}
-
       {step === "form" && destinations.length === 0 ? (
         <section className="pt-8 text-center">
           <h1 className="display text-4xl">Pay for your ride</h1>
@@ -244,7 +213,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
         <section className="pb-28">
           <p className="kicker text-center">ROVEYA</p>
           <h1 className="display mt-2 text-center text-4xl">Pay for your ride</h1>
-          <p className="mt-2 text-center text-sm text-[#F6F1DC]/55">You are already travelling. Your name comes from Google. Add a mobile number only if you want to.</p>
+          <p className="mt-2 text-center text-sm text-[#F6F1DC]/55">You are already travelling. Enter your name. A mobile number is optional.</p>
           <form
             className="mt-8 space-y-4"
             onSubmit={(e) => {

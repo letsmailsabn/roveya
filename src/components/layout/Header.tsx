@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 import { Logo } from "@/components/brand/Logo";
 import { track } from "@/components/analytics/track";
 import { createClient } from "@/lib/supabase/browser";
@@ -103,9 +102,7 @@ export function Header() {
                 </button>
               </div>
             ) : (
-              <div className="mt-4">
-                <GoogleSignIn next={pathname} />
-              </div>
+              <p className="mt-4 text-sm leading-6 text-[#F6F1DC]/75">Sign-in is paused for now.</p>
             )}
           </div>
         ) : null}
@@ -124,7 +121,7 @@ export function Header() {
               </button>
             </div>
           ) : (
-            <GoogleSignIn next={pathname} />
+            <p className="text-sm leading-6 text-[#F6F1DC]/75">Sign-in is paused for now.</p>
           )}
         </div>
       ) : null}

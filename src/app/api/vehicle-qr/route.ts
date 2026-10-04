@@ -1,4 +1,4 @@
-import { vehiclePayUrl, vehicleQrPng, vehicleQrSvg } from "@/lib/vehicle-qr";
+import { vehiclePayUrl, vehicleQrPng, vehicleQrSvg, vehicleScanCardSvg } from "@/lib/vehicle-qr";
 
 export async function GET(request: Request) {
   const query = new URL(request.url).searchParams;
@@ -6,6 +6,16 @@ export async function GET(request: Request) {
   const driver = query.get("driver") ?? "";
   const driverId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(driver) ? driver : undefined;
   const url = vehiclePayUrl(driverId);
+  if (format === "card") {
+    const card = await vehicleScanCardSvg(url);
+    return new Response(card, {
+      headers: {
+        "Content-Type": "image/svg+xml; charset=utf-8",
+        "Content-Disposition": 'attachment; filename="roveya-pay-card.svg"',
+        "Cache-Control": "no-store",
+      },
+    });
+  }
   if (format === "svg") {
     const svg = await vehicleQrSvg(url);
     return new Response(svg, {

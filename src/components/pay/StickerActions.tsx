@@ -11,7 +11,7 @@ export function StickerActions({ downloadHref = "/api/vehicle-qr" }: { downloadH
         Print this card
       </button>
       <a href={downloadHref} className="rounded-full border border-[#D6A000]/50 px-6 py-3 text-sm text-[#F6F1DC]">
-        Download PNG
+        Download card
       </a>
     </div>
   );
