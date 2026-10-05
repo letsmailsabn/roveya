@@ -102,6 +102,18 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       description: `${data.destinationName} · ${data.seats} seat${data.seats > 1 ? "s" : ""}`,
       prefill: { name: data.customerName, contact: data.mobile },
       theme: { color: "#6B1838" },
+      config: {
+        display: {
+          blocks: {
+            upi: {
+              name: "Pay with UPI",
+              instruments: [{ method: "upi" }],
+            },
+          },
+          sequence: ["block.upi"],
+          preferences: { show_default_blocks: true },
+        },
+      },
       handler: async (response: RazorpaySuccess) => {
         const verified = await fetch("/api/payments/verify", {
           method: "POST",
@@ -320,8 +332,9 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
           {error ? <p className="mt-3 text-sm text-[#E0B23A]">{error}</p> : null}
           <div className="mt-8 grid gap-3">
             <button type="button" disabled={busy} onClick={() => void choose("ONLINE")} className="btn-primary w-full py-4">
-              PAY ONLINE
+              PAY WITH UPI
             </button>
+            <p className="text-xs text-[#F6F1DC]/55">GPay, PhonePe, or a UPI ID. A card is in the same window.</p>
             <button type="button" disabled={busy} onClick={() => void choose("CASH")} className="btn-ghost w-full py-4">
               PAY CASH
             </button>
@@ -336,10 +349,10 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
           <p className="mt-1 text-sm text-[#F6F1DC]/55">
             {ride.destinationName} · {ride.seats} seat{ride.seats > 1 ? "s" : ""}
           </p>
-          <p className="mt-6 text-sm text-[#F6F1DC]/68">A secure Razorpay window will open for this exact amount.</p>
+          <p className="mt-6 text-sm text-[#F6F1DC]/68">Pay this exact amount with UPI. GPay, PhonePe, or a UPI ID. A card is there too.</p>
           {error ? <p className="mt-3 text-sm text-[#E0B23A]">{error}</p> : null}
           <button type="button" className="btn-primary mt-6 w-full py-4" onClick={() => void openRazorpay(ride)}>
-            PAY WITH RAZORPAY
+            PAY WITH UPI
           </button>
           <p className="mt-6 text-xs tracking-[0.16em] text-[#E0B23A]">WAITING FOR PAYMENT VERIFICATION</p>
         </section>
