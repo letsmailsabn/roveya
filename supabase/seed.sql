@@ -31,7 +31,13 @@ select * from (
   values
     ('Ananya Reddy', 'Hyderabad', 5, 'Smooth journey, transparent pricing and a very convenient payment experience.', true),
     ('Ravi Kumar', 'Warangal', 5, 'The vehicle was clean and the fare was clear before I paid. No confusion at all.', true),
-    ('Sneha Rao', 'Vijayawada', 5, 'Paying from my seat was simple. I would travel with ROVEYA again.', true)
+    ('Sneha Rao', 'Vijayawada', 5, 'Paying from my seat was simple. I would travel with ROVEYA again.', true),
+    ('Meera Patel', 'Khammam', 5, 'My seat stayed mine for the whole journey. Nobody was asked to share it.', true),
+    ('Karthik Naidu', 'Nalgonda', 5, 'The seat was clean when I sat down, and the cabin stayed comfortable.', true),
+    ('Divya Sharma', 'Suryapet', 5, 'We stopped once on the longer ride, then I came back to the same seat.', true),
+    ('Arjun Reddy', 'Hyderabad', 5, 'My bag was taken and placed before I boarded. I just sat down.', true),
+    ('Lakshmi Devi', 'Vijayawada', 5, 'There was room in the car, and a water bottle was already waiting.', true),
+    ('Harish Goud', 'Khammam', 5, 'Four of us travelled, and two seats stayed open. The fare was clear before I paid.', true)
 ) as sample(name, route, rating, quote, published)
 where not exists (select 1 from public.testimonials);
 

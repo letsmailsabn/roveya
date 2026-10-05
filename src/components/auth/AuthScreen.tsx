@@ -69,21 +69,21 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
           <>
             <label className="block text-xs uppercase tracking-[0.16em] text-[#F6F1DC]/70">
               Full name
-              <input name="name" required className="mt-2 w-full rounded-xl border border-[#D6A000]/25 bg-[#12060D] px-4 py-3 text-sm" />
+              <input name="name" required className="mt-2 w-full rounded-xl border border-[#D6A000]/25 bg-[#12060D] px-4 py-3 text-sm text-[#F6F1DC]" />
             </label>
             <label className="block text-xs uppercase tracking-[0.16em] text-[#F6F1DC]/70">
               Mobile
-              <input name="mobile" required inputMode="numeric" placeholder="10-digit mobile" className="mt-2 w-full rounded-xl border border-[#D6A000]/25 bg-[#12060D] px-4 py-3 text-sm" />
+              <input name="mobile" required inputMode="numeric" placeholder="10-digit mobile" className="mt-2 w-full rounded-xl border border-[#D6A000]/25 bg-[#12060D] px-4 py-3 text-sm text-[#F6F1DC]" />
             </label>
           </>
         ) : null}
         <label className="block text-xs uppercase tracking-[0.16em] text-[#F6F1DC]/70">
           Email
-          <input name="email" type="email" required className="mt-2 w-full rounded-xl border border-[#D6A000]/25 bg-[#12060D] px-4 py-3 text-sm" />
+          <input name="email" type="email" required className="mt-2 w-full rounded-xl border border-[#D6A000]/25 bg-[#12060D] px-4 py-3 text-sm text-[#F6F1DC]" />
         </label>
         <label className="block text-xs uppercase tracking-[0.16em] text-[#F6F1DC]/70">
           Password
-          <input name="password" type="password" required minLength={6} className="mt-2 w-full rounded-xl border border-[#D6A000]/25 bg-[#12060D] px-4 py-3 text-sm" />
+          <input name="password" type="password" required minLength={6} className="mt-2 w-full rounded-xl border border-[#D6A000]/25 bg-[#12060D] px-4 py-3 text-sm text-[#F6F1DC]" />
         </label>
         {error ? <p className="text-sm text-[#E0B23A]">{error}</p> : null}
         {info ? <p className="text-sm text-[#F6F1DC]/75">{info}</p> : null}

@@ -59,7 +59,7 @@ export function PhoneOtp({ next = "/account", onDone }: { next?: string; onDone?
             inputMode="numeric"
             autoComplete="tel"
             placeholder="10-digit mobile"
-            className="mt-2 w-full rounded-xl border border-[#E0B23A] bg-[#2A1020] px-4 py-3 text-sm text-[#F6F1DC]"
+            className="mt-2 w-full rounded-xl border border-[#E0B23A] bg-[#2A1020] px-4 py-3 text-sm text-[#F6F1DC] [--field-bg:#2A1020]"
             required
           />
         </label>
@@ -78,7 +78,7 @@ export function PhoneOtp({ next = "/account", onDone }: { next?: string; onDone?
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="6-digit code"
-              className="mt-2 w-full rounded-xl border border-[#E0B23A] bg-[#2A1020] px-4 py-3 text-sm tracking-[0.3em] text-[#F6F1DC]"
+              className="mt-2 w-full rounded-xl border border-[#E0B23A] bg-[#2A1020] px-4 py-3 text-sm tracking-[0.3em] text-[#F6F1DC] [--field-bg:#2A1020]"
               required
             />
           </label>

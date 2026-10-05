@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
       <div className="rounded-3xl bg-[#F9F7E2] p-8 shadow-[0_16px_40px_rgba(79,0,57,0.08)]">
         <Logo href="/" compact />
         <h1 className="mt-6 text-2xl font-semibold">Operations sign in</h1>
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <form onSubmit={onSubmit} className="form-light mt-6 space-y-4 [--field-bg:#ffffff]">
           <label className="block text-xs uppercase tracking-[0.16em]">
             Email
             <input name="email" type="email" required className="mt-2 w-full rounded-xl bg-white px-4 py-3 text-sm" />

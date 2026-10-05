@@ -331,7 +331,7 @@ export function PoolRideForm({
     <div>
       <form
         onSubmit={(event) => void onSubmit(event)}
-        className="overflow-visible rounded-[28px] border border-[#D6A000]/50 bg-[#F6F1DC] text-[#12060D] shadow-[0_18px_50px_rgba(0,0,0,0.28)] md:flex md:items-stretch"
+        className="form-light overflow-visible rounded-[28px] border border-[#D6A000]/50 bg-[#F6F1DC] text-[#12060D] shadow-[0_18px_50px_rgba(0,0,0,0.28)] md:flex md:items-stretch"
       >
         <PlaceField label="From" value={from} onChange={setFrom} onPin={(label, point) => setPins((current) => ({ ...current, [`from:${label}`]: point }))} places={places} />
         <PlaceField label="To" value={to} onChange={setTo} onPin={(label, point) => setPins((current) => ({ ...current, [`to:${label}`]: point }))} places={places} />

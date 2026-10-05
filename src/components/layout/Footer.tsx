@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import type { SiteSetting } from "@/lib/data";
+import { whatsAppLink } from "@/lib/whatsapp";
 
 const quick = [
   { href: "/", label: "Home" },
@@ -81,7 +82,7 @@ export function Footer({
               <a href={`tel:${settings.phone.replace(/\s/g, "")}`}>{settings.phone}</a>
             </li>
             <li>
-              <a href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noreferrer">
+              <a href={whatsAppLink(settings.whatsapp)} target="_blank" rel="noreferrer">
                 WhatsApp
               </a>
             </li>

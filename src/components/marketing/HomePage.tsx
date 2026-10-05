@@ -3,10 +3,18 @@ import Link from "next/link";
 import { AnalyticsPing } from "@/components/analytics/track";
 import { ContactForm } from "@/components/marketing/ContactForm";
 import { PayCta } from "@/components/marketing/PayCta";
-import { REASONS, SERVICES, TRUST } from "@/lib/content";
+import { TestimonialCarousel } from "@/components/marketing/TestimonialCarousel";
+import { EXTRA_QUOTES, REASONS, SERVICES, TRUST } from "@/lib/content";
 import { siteUrl, type PublicTestimonial, type SiteSetting, type TravelRoute } from "@/lib/data";
+import { whatsAppLink } from "@/lib/whatsapp";
 import { formatClock } from "@/lib/time";
 import { formatInr } from "@/lib/validation";
+
+function movingQuotes(published: PublicTestimonial[]): PublicTestimonial[] {
+  const names = new Set(published.map((item) => item.name.toLowerCase()));
+  const extra = EXTRA_QUOTES.filter((item) => !names.has(item.name.toLowerCase()));
+  return [...published, ...extra];
+}
 
 export function HomePage({
   routes,
@@ -48,7 +56,7 @@ export function HomePage({
               Arrive better.
             </h1>
             <p className="mt-6 max-w-md text-lg leading-8 text-[#F6F1DC]/72">
-              Reliable, comfortable and transparent travel for every journey. ROVEYA makes every ride easy — including payment from your seat.
+              A seat of your own, in a clean cabin, with room left on purpose. A 7-seater carries four or five passengers. When you are already travelling, you pay from your seat.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
               <PayCta className="btn-primary w-full sm:w-auto">PAY FOR YOUR RIDE</PayCta>
@@ -95,7 +103,7 @@ export function HomePage({
           <p className="kicker">About us</p>
           <h2 className="display mt-3 text-4xl md:text-5xl">Travel with confidence</h2>
           <p className="mt-5 max-w-lg text-base leading-8 text-[#F6F1DC]/72">
-            ROVEYA is a transportation service built around comfort, reliable journeys, transparent pricing and simple digital payments. Passengers already travelling with us can pay from their seat — without creating an account or booking in advance.
+            Every passenger has one seat, cleaned before they sit. The car can hold seven, and we carry only four or five, so the journey stays comfortable. Mineral water, a planned break, and luggage attended to come with the ride.
           </p>
           <Link href="/about" className="mt-8 inline-flex text-xs font-semibold tracking-[0.18em] text-[#D6A000]">
             LEARN MORE
@@ -135,7 +143,7 @@ export function HomePage({
         <p className="kicker">Taxipool</p>
         <h2 className="display mt-3 text-4xl md:text-5xl">Pool a ride</h2>
         <p className="mt-4 max-w-xl text-[#F6F1DC]/68">
-          Each route has a starting point, a destination, and a departure and arrival time. You share the taxi with other passengers.
+          Each route has a starting point, a destination, and a departure and arrival time. You travel with a few other passengers, each in their own seat.
         </p>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {routes.map((route) => (
@@ -183,7 +191,7 @@ export function HomePage({
           <h2 className="display text-4xl md:text-6xl">Already travelling with us?</h2>
           <p className="mt-4 text-xl text-[#D6A000]">Pay for your ride in seconds.</p>
           <p className="mt-4 text-[#F6F1DC]/75">
-            Scan the QR inside your ROVEYA vehicle or continue directly to our secure ride payment page.
+            Your fare is for your own clean seat. Mineral water is included, and your luggage is attended to before you sit.
           </p>
           <PayCta className="mt-8 inline-flex rounded-full bg-[#F6F1DC] px-8 py-3.5 text-xs font-semibold tracking-[0.16em] text-[#4C102C] hover:shadow-[0_0_0_1px_#D6A000]">
             PAY FOR YOUR RIDE
@@ -193,19 +201,9 @@ export function HomePage({
 
       <section className="bg-[#1C0A14] py-20">
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
-          <h2 className="display text-4xl md:text-5xl">What our customers say</h2>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <article key={t.id} className="rounded-3xl bg-[#241018] p-7 shadow-[0_10px_30px_rgba(79,0,57,0.05)]">
-                <p className="text-[#D6A000]" aria-label={`${t.rating} out of 5 stars`}>
-                  {"★".repeat(t.rating)}
-                  <span className="text-[#F6F1DC]/20">{"★".repeat(5 - t.rating)}</span>
-                </p>
-                <p className="mt-4 text-sm leading-7 text-[#F6F1DC]/75">“{t.quote}”</p>
-                <p className="mt-5 text-sm font-semibold">— {t.name}</p>
-                {t.route ? <p className="text-xs tracking-[0.14em] text-[#F6F1DC]/45">{t.route}</p> : null}
-              </article>
-            ))}
+          <h2 className="display text-center text-4xl md:text-5xl">What our customers say</h2>
+          <div className="mt-10">
+            <TestimonialCarousel items={movingQuotes(testimonials)} />
           </div>
         </div>
       </section>
@@ -225,7 +223,7 @@ export function HomePage({
               </li>
               <li>
                 WhatsApp:{" "}
-                <a className="font-medium" href={`https://wa.me/${settings.whatsapp}`}>
+                <a className="font-medium" href={whatsAppLink(settings.whatsapp)} target="_blank" rel="noreferrer">
                   Message us
                 </a>
               </li>

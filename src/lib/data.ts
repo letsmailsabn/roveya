@@ -102,7 +102,7 @@ export async function getPublishedTestimonials(): Promise<PublicTestimonial[]> {
     .select("id,name,route,rating,quote")
     .eq("published", true)
     .order("created_at", { ascending: false })
-    .limit(6);
+    .limit(12);
   return data ?? [];
 }
 

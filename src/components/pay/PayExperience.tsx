@@ -219,6 +219,9 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
           <p className="kicker text-center">ROVEYA</p>
           <h1 className="display mt-2 text-center text-4xl">Pay for your ride</h1>
           <p className="mt-2 text-center text-sm text-[#F6F1DC]/55">You are already travelling. Enter your name. A mobile number is optional.</p>
+          <p className="mx-auto mt-4 max-w-sm text-center text-sm leading-6 text-[#F6F1DC]/70">
+            Your fare is for your own clean seat. Mineral water is included, and your luggage is attended to before you sit.
+          </p>
           <form
             className="mt-8 space-y-4"
             onSubmit={(e) => {
@@ -231,7 +234,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your full name"
-                className="w-full rounded-2xl bg-[#2A1220] text-[#F6F1DC] px-4 py-4 text-base"
+                className="w-full rounded-2xl bg-[#2A1220] px-4 py-4 text-base text-[#F6F1DC] [--field-bg:#2A1220]"
                 autoComplete="name"
                 autoCapitalize="words"
                 required
@@ -245,7 +248,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
                   onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
                   placeholder="Optional"
                   inputMode="numeric"
-                  className="w-full bg-transparent py-4 pr-4 text-base"
+                  className="w-full bg-[#2A1220] py-4 pr-4 text-base text-[#F6F1DC] [--field-bg:#2A1220]"
                   autoComplete="tel"
                   aria-invalid={mobile.length > 0 && !indianMobile.test(mobile)}
                 />
@@ -272,7 +275,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
               <select
                 value={destinationId}
                 onChange={(e) => setDestinationId(e.target.value)}
-                className="w-full rounded-2xl bg-[#2A1220] text-[#F6F1DC] px-4 py-4 text-base"
+                className="w-full rounded-2xl bg-[#2A1220] px-4 py-4 text-base text-[#F6F1DC] [--field-bg:#2A1220]"
                 required
               >
                 <option value="">Select destination</option>
@@ -321,6 +324,9 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
           <h1 className="display text-4xl">Choose payment</h1>
           <p className="mt-2 text-sm text-[#F6F1DC]/55">
             {ride.destinationName} · {ride.seats} seat{ride.seats > 1 ? "s" : ""} · {formatInr(ride.totalFare)}
+          </p>
+          <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-[#F6F1DC]/70">
+            This amount is for your seat. Mineral water is included, and your luggage is attended to before you sit.
           </p>
           {error ? <p className="mt-3 text-sm text-[#E0B23A]">{error}</p> : null}
           <div className="mt-8 grid gap-3">
@@ -393,7 +399,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Optional"
-              className="mt-2 w-full rounded-2xl bg-[#2A1220] text-[#F6F1DC] px-4 py-3 text-sm normal-case tracking-normal"
+              className="mt-2 w-full rounded-2xl bg-[#2A1220] px-4 py-3 text-sm text-[#F6F1DC] normal-case tracking-normal [--field-bg:#2A1220]"
               rows={4}
             />
           </label>
