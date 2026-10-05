@@ -9,17 +9,6 @@ declare global {
       description: string;
       prefill?: { name?: string; contact?: string };
       theme?: { color?: string };
-      config?: {
-        display?: {
-          blocks?: Record<
-            string,
-            { name: string; instruments: { method: string; flows?: string[]; apps?: string[] }[] }
-          >;
-          hide?: { method: string; flows?: string[] }[];
-          sequence?: string[];
-          preferences?: { show_default_blocks?: boolean };
-        };
-      };
       handler: (response: {
         razorpay_order_id: string;
         razorpay_payment_id: string;
