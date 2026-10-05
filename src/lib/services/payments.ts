@@ -113,9 +113,14 @@ async function writeAudit(entry: {
   }
 }
 
+function serverEnv(name: string) {
+  const value = process.env[name];
+  return typeof value === "string" ? value.trim() : "";
+}
+
 function razorpayClient() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  const keyId = serverEnv("RAZORPAY_KEY_ID");
+  const keySecret = serverEnv("RAZORPAY_KEY_SECRET");
   if (!keyId || !keySecret) return null;
   return { keyId, keySecret, client: new Razorpay({ key_id: keyId, key_secret: keySecret }) };
 }
@@ -428,7 +433,7 @@ export async function verifyRazorpayPayment(input: {
 }
 
 export async function handleRazorpayWebhook(rawBody: string, signatureHeader: string | null) {
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  const secret = serverEnv("RAZORPAY_WEBHOOK_SECRET");
   if (!secret || !verifyRazorpayWebhookSignature(rawBody, signatureHeader, secret)) {
     throw new AppError("Unauthorized", 401);
   }
