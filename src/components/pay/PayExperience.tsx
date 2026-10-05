@@ -198,16 +198,17 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col px-5">
       <AnalyticsPing event="payment_page_opened" />
+      {step === "loader" || busy ? <Loader /> : null}
+
+      <div className="flex w-full flex-1 flex-col justify-center-safe py-8">
       {step !== "loader" && !busy ? (
-        <div className="flex justify-center py-5">
+        <div className="flex justify-center pb-8">
           <Logo href="/" />
         </div>
       ) : null}
 
-      {step === "loader" || busy ? <Loader /> : null}
-
       {step === "form" && destinations.length === 0 ? (
-        <section className="pt-8 text-center">
+        <section className="text-center">
           <h1 className="display text-4xl">Pay for your ride</h1>
           <p className="mt-4 text-sm text-[#F6F1DC]/60">Ride payment is not available until destinations are connected.</p>
         </section>
@@ -316,7 +317,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       ) : null}
 
       {step === "method" && ride ? (
-        <section className="pb-10 text-center">
+        <section className="text-center">
           <h1 className="display text-4xl">Choose payment</h1>
           <p className="mt-2 text-sm text-[#F6F1DC]/55">
             {ride.destinationName} · {ride.seats} seat{ride.seats > 1 ? "s" : ""} · {formatInr(ride.totalFare)}
@@ -334,7 +335,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       ) : null}
 
       {step === "online" && ride ? (
-        <section className="pb-10 text-center">
+        <section className="text-center">
           <p className="kicker">ROVEYA payment</p>
           <h1 className="display mt-2 text-5xl">{formatInr(ride.totalFare)}</h1>
           <p className="mt-1 text-sm text-[#F6F1DC]/55">
@@ -350,7 +351,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       ) : null}
 
       {step === "cash" && ride ? (
-        <section className="pb-10 text-center">
+        <section className="text-center">
           <p className="kicker">Cash payment</p>
           <h1 className="display mt-3 text-4xl">Amount due</h1>
           <p className="mt-2 text-5xl font-semibold text-[#E0B23A]">{formatInr(ride.totalFare)}</p>
@@ -361,7 +362,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       ) : null}
 
       {step === "success" && ride ? (
-        <section className="pb-10 text-center">
+        <section className="text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#6B1838] text-2xl text-[#F6F1DC]">
             ✓
           </div>
@@ -403,11 +404,12 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       ) : null}
 
       {step === "thanks" ? (
-        <section className="pt-10 text-center">
+        <section className="text-center">
           <h1 className="display text-4xl">Thank you for travelling with ROVEYA.</h1>
           <p className="mt-4 text-sm text-[#F6F1DC]/60">We hope your next journey is just as easy.</p>
         </section>
       ) : null}
+      </div>
     </div>
   );
 }
