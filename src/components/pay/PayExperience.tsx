@@ -107,7 +107,21 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       theme: { color: "#6B1838" },
       config: {
         display: {
-          sequence: ["upi", "card"],
+          blocks: {
+            intent: {
+              name: "Google Pay or PhonePe",
+              instruments: [{ method: "upi", flows: ["intent"] }],
+            },
+            qr: {
+              name: "UPI QR",
+              instruments: [{ method: "upi", flows: ["qr"] }],
+            },
+            card: {
+              name: "Card",
+              instruments: [{ method: "card" }],
+            },
+          },
+          sequence: ["block.intent", "block.qr", "block.card"],
           preferences: { show_default_blocks: false },
         },
       },
