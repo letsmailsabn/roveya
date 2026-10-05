@@ -11,7 +11,11 @@ declare global {
       theme?: { color?: string };
       config?: {
         display?: {
-          blocks?: Record<string, { name: string; instruments: { method: string; flows?: string[] }[] }>;
+          blocks?: Record<
+            string,
+            { name: string; instruments: { method: string; flows?: string[]; apps?: string[] }[] }
+          >;
+          hide?: { method: string; flows?: string[] }[];
           sequence?: string[];
           preferences?: { show_default_blocks?: boolean };
         };

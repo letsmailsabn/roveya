@@ -107,13 +107,20 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
           blocks: {
             upi: {
               name: "Pay with UPI",
-              instruments: [{ method: "upi", flows: ["intent", "collect", "qr"] }],
+              instruments: [
+                {
+                  method: "upi",
+                  flows: ["intent", "qr"],
+                  apps: ["google_pay", "phonepe"],
+                },
+              ],
             },
             card: {
               name: "Card",
               instruments: [{ method: "card" }],
             },
           },
+          hide: [{ method: "upi", flows: ["collect"] }],
           sequence: ["block.upi", "block.card"],
           preferences: { show_default_blocks: false },
         },
@@ -338,7 +345,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
             <button type="button" disabled={busy} onClick={() => void choose("ONLINE")} className="btn-primary w-full py-4">
               PAY WITH UPI
             </button>
-            <p className="text-xs text-[#F6F1DC]/55">Enter a UPI ID, open GPay or PhonePe, or scan the QR.</p>
+            <p className="text-xs text-[#F6F1DC]/55">On a phone, open Google Pay or PhonePe. On a computer, scan the QR.</p>
             <button type="button" disabled={busy} onClick={() => void choose("CASH")} className="btn-ghost w-full py-4">
               PAY CASH
             </button>
@@ -353,7 +360,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
           <p className="mt-1 text-sm text-[#F6F1DC]/55">
             {ride.destinationName} · {ride.seats} seat{ride.seats > 1 ? "s" : ""}
           </p>
-          <p className="mt-6 text-sm text-[#F6F1DC]/68">Enter a UPI ID like name@oksbi, open GPay or PhonePe, or scan the QR.</p>
+          <p className="mt-6 text-sm text-[#F6F1DC]/68">On a phone, choose Google Pay or PhonePe. On a computer, scan the QR with any UPI app.</p>
           {error ? <p className="mt-3 text-sm text-[#E0B23A]">{error}</p> : null}
           <button type="button" className="btn-primary mt-6 w-full py-4" onClick={() => void openRazorpay(ride)}>
             PAY WITH UPI
