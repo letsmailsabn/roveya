@@ -11,7 +11,7 @@ declare global {
       theme?: { color?: string };
       config?: {
         display?: {
-          blocks?: Record<string, { name: string; instruments: { method: string }[] }>;
+          blocks?: Record<string, { name: string; instruments: { method: string; flows?: string[] }[] }>;
           sequence?: string[];
           preferences?: { show_default_blocks?: boolean };
         };
