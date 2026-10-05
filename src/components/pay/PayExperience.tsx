@@ -100,28 +100,14 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       order_id: data.razorpayOrderId,
       name: "ROVEYA",
       description: `${data.destinationName} · ${data.seats} seat${data.seats > 1 ? "s" : ""}`,
-      prefill: { name: data.customerName, contact: data.mobile },
+      prefill: {
+        name: data.customerName,
+        contact: data.mobile ? `+91${data.mobile.replace(/\D/g, "").slice(-10)}` : undefined,
+      },
       theme: { color: "#6B1838" },
       config: {
         display: {
-          blocks: {
-            upi: {
-              name: "Pay with UPI",
-              instruments: [
-                {
-                  method: "upi",
-                  flows: ["intent", "qr"],
-                  apps: ["google_pay", "phonepe"],
-                },
-              ],
-            },
-            card: {
-              name: "Card",
-              instruments: [{ method: "card" }],
-            },
-          },
-          hide: [{ method: "upi", flows: ["collect"] }],
-          sequence: ["block.upi", "block.card"],
+          sequence: ["upi", "card"],
           preferences: { show_default_blocks: false },
         },
       },
@@ -343,9 +329,17 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
           {error ? <p className="mt-3 text-sm text-[#E0B23A]">{error}</p> : null}
           <div className="mt-8 grid gap-3">
             <button type="button" disabled={busy} onClick={() => void choose("ONLINE")} className="btn-primary w-full py-4">
-              PAY WITH UPI
+              GOOGLE PAY
             </button>
-            <p className="text-xs text-[#F6F1DC]/55">On a phone, open Google Pay or PhonePe. On a computer, scan the QR.</p>
+            <button type="button" disabled={busy} onClick={() => void choose("ONLINE")} className="btn-primary w-full py-4">
+              PHONEPE
+            </button>
+            <button type="button" disabled={busy} onClick={() => void choose("ONLINE")} className="btn-ghost w-full py-4">
+              UPI QR
+            </button>
+            <p className="text-xs text-[#F6F1DC]/55">
+              On a phone, Google Pay and PhonePe open in the app. On a computer, Razorpay shows the UPI QR.
+            </p>
             <button type="button" disabled={busy} onClick={() => void choose("CASH")} className="btn-ghost w-full py-4">
               PAY CASH
             </button>
@@ -360,10 +354,10 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
           <p className="mt-1 text-sm text-[#F6F1DC]/55">
             {ride.destinationName} · {ride.seats} seat{ride.seats > 1 ? "s" : ""}
           </p>
-          <p className="mt-6 text-sm text-[#F6F1DC]/68">On a phone, choose Google Pay or PhonePe. On a computer, scan the QR with any UPI app.</p>
+          <p className="mt-6 text-sm text-[#F6F1DC]/68">Choose UPI, then Google Pay, PhonePe, or the QR.</p>
           {error ? <p className="mt-3 text-sm text-[#E0B23A]">{error}</p> : null}
           <button type="button" className="btn-primary mt-6 w-full py-4" onClick={() => void openRazorpay(ride)}>
-            PAY WITH UPI
+            OPEN UPI
           </button>
           <p className="mt-6 text-xs tracking-[0.16em] text-[#E0B23A]">WAITING FOR PAYMENT VERIFICATION</p>
         </section>
