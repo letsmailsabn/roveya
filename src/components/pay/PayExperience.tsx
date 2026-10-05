@@ -103,6 +103,7 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       prefill: { name: data.customerName, contact: data.mobile },
       theme: { color: "#6B1838" },
       handler: async (response: RazorpaySuccess) => {
+        setBusy(true);
         const verified = await fetch("/api/payments/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -110,10 +111,12 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
         });
         const body = await verified.json();
         if (!verified.ok || body.paymentStatus !== "PAID") {
+          setBusy(false);
           setError(body.error ?? "Payment could not be verified.");
           return;
         }
         track("payment_completed");
+        setBusy(false);
         setRide((prev) => (prev ? { ...prev, ...body, paymentStatus: "PAID" } : prev));
         setStep("success");
       },
@@ -151,14 +154,15 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
       body: JSON.stringify({ publicId: ride.publicId }),
     });
     const data = await res.json();
-    setBusy(false);
     if (!res.ok) {
+      setBusy(false);
       setError(data.error ?? "Unable to start payment.");
       return;
     }
     setRide(data);
     setStep("online");
     await openRazorpay(data);
+    setBusy(false);
   }
 
   async function slideCash() {
@@ -194,13 +198,13 @@ export function PayExperience({ destinations, driverId }: { destinations: Destin
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col px-5">
       <AnalyticsPing event="payment_page_opened" />
-      {step !== "loader" ? (
+      {step !== "loader" && !busy ? (
         <div className="flex justify-center py-5">
           <Logo href="/" />
         </div>
       ) : null}
 
-      {step === "loader" ? <Loader /> : null}
+      {step === "loader" || busy ? <Loader /> : null}
 
       {step === "form" && destinations.length === 0 ? (
         <section className="pt-8 text-center">
@@ -491,7 +495,7 @@ function CashSlide({ busy, onConfirm }: { busy: boolean; onConfirm: () => void }
 
 function Loader() {
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#12060D] px-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#12060D] px-6">
       <div className="flex w-full max-w-xs flex-col items-center text-center">
         <Logo href="" />
         <div className="mt-12 w-full">
