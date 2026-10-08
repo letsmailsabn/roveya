@@ -1,8 +1,8 @@
 # ROVEYA
 
-Premium transportation website and in-vehicle ride payment.
+**Phase 1 codebase.** This mark is the shipped public website: the marketing pages, in-vehicle ride payment, and the contact desk.
 
-Phase 2 connects the existing site to Supabase and Razorpay. The public pages and `/pay` screen are unchanged in layout. Online payment now opens Razorpay Checkout instead of a static UPI QR.
+Premium transportation website and in-vehicle ride payment. Supabase and Razorpay are already connected. Online payment opens Razorpay Checkout.
 
 ## Experiences
 
