@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -8,6 +9,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { MaintenanceGate } from "./src/components/MaintenanceGate";
 import { RiderNavigation } from "./src/navigation";
 import { StoreProvider, useStore } from "./src/store";
 import { colors } from "./src/theme";
@@ -25,6 +27,7 @@ function Gate() {
 }
 
 export default function App() {
+  const [open, setOpen] = useState(false);
   const [fontsReady] = useFonts({
     PlusJakartaSans_400Regular,
     PlusJakartaSans_500Medium,
@@ -33,11 +36,15 @@ export default function App() {
   });
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
+      <StatusBar style={open ? "dark" : "light"} />
       {fontsReady ? (
-        <StoreProvider>
-          <Gate />
-        </StoreProvider>
+        open ? (
+          <StoreProvider>
+            <Gate />
+          </StoreProvider>
+        ) : (
+          <MaintenanceGate onEnter={() => setOpen(true)} />
+        )
       ) : (
         <View style={{ flex: 1, backgroundColor: colors.night, alignItems: "center", justifyContent: "center" }}>
           <ActivityIndicator color={colors.gold} />
