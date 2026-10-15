@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "ROVEYA Captain",
+    "slug": "roveya-rider",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.roveya.rider",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "ROVEYA uses your location while you are online for rides."
+      }
+    },
+    "android": {
+      "package": "com.roveya.rider",
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "adaptiveIcon": {
+        "backgroundColor": "#12060D",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "ROVEYA uses your location while you are online for rides."
+        }
+      ]
+    ]
+  }
+}
